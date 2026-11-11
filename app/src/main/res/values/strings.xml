@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">GestionProduitsSQLite</string>
+    <string name="action_ajouter">Ajouter un produit</string>
+</resources>

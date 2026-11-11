@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_light">
+
+    <!-- En-tête de page avec bouton retour -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/primary"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp"
+        android:gravity="center_vertical"
+        android:elevation="6dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/white"
+            android:contentDescription="Retour" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Convertisseur de Devises"
+            android:textColor="@color/white"
+            android:textSize="19sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp" />
+
+        <!-- Bouton texte de retour rapide dans l'en-tête -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnHeaderReturn"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Retour"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Carte 1 : Formulaire de Saisie -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/card_border"
+                app:cardBackgroundColor="@color/white"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1. Saisir le montant :"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="10dp" />
+
+                    <!-- Input Montant -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Montant à convertir"
+                        app:boxStrokeColor="@color/primary"
+                        app:hintTextColor="@color/primary"
+                        android:layout_marginBottom="18dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editTextAmountToConvert"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="numberDecimal"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2. Sélectionner le sens :"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Choix du sens (RadioGroup) -->
+                    <RadioGroup
+                        android:id="@+id/radioGroupConversion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp">
+
+                        <RadioButton
+                            android:id="@+id/radioButtonTnDToUsD"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="🇹🇳 TND  ➔  🇺🇸 USD  (Dinar vers Dollar)"
+                            android:textSize="15sp"
+                            android:textColor="@color/text_primary"
+                            android:padding="10dp" />
+
+                        <RadioButton
+                            android:id="@+id/radioButtonUsDToTnD"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="🇺🇸 USD  ➔  🇹🇳 TND  (Dollar vers Dinar)"
+                            android:textSize="15sp"
+                            android:textColor="@color/text_primary"
+                            android:padding="10dp" />
+                    </RadioGroup>
+
+                    <!-- Bouton Convertir -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonConvert"
+                        android:layout_width="match_parent"
+                        android:layout_height="54dp"
+                        android:text="CONVERTIR MAINTENANT"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        app:backgroundTint="@color/primary"
+                        app:cornerRadius="12dp"
+                        app:elevation="4dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Carte 2 : Résultat -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#A7F3D0"
+                app:cardBackgroundColor="@color/secondary_light"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Résultat de la conversion"
+                        android:textColor="#065F46"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/textViewResult"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0.00"
+                        android:textColor="#047857"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="6dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Carte 3 : Conversion en ligne TND -> DZD -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonOnlineConversion"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="Conversion TND → DZD en ligne (XE.com)"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/secondary"
+                app:icon="@android:drawable/ic_menu_compass"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white"
+                app:cornerRadius="12dp"
+                app:elevation="4dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Bouton de retour principal bas de page -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReturnMain"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="← Retour à l'accueil"
+                android:textColor="@color/primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="2dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

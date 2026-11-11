@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_light">
+
+    <!-- En-tête personnalisé (Remplaçant la barre à 3 points) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/primary"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="20dp"
+        android:elevation="6dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gestionnaire de Produits"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Base de données SQLite &amp; Convertisseur"
+            android:textColor="#93C5FD"
+            android:textSize="13sp"
+            android:layout_marginTop="2dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Boutons d'accès direct (Pas de menu 3 points) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <!-- Bouton Ajouter Produit -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAjouterProduit"
+                android:layout_width="0dp"
+                android:layout_height="54dp"
+                android:layout_weight="1"
+                android:text="Ajouter Produit"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="6dp"
+                app:backgroundTint="@color/primary"
+                app:icon="@android:drawable/ic_input_add"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white"
+                app:cornerRadius="12dp"
+                app:elevation="4dp" />
+
+            <!-- Bouton Convertisseur TP7 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOuvrirConvertisseur"
+                android:layout_width="0dp"
+                android:layout_height="54dp"
+                android:layout_weight="1"
+                android:text="Convertisseur"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginStart="6dp"
+                app:backgroundTint="@color/secondary"
+                app:icon="@android:drawable/ic_menu_compass"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white"
+                app:cornerRadius="12dp"
+                app:elevation="4dp" />
+
+        </LinearLayout>
+
+        <!-- Titre de la section Liste -->
+        <TextView
+            android:id="@+id/txtHeaderCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Liste des Produits"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"
+            android:layout_marginStart="4dp" />
+
+        <!-- ListView des cartes de produits -->
+        <ListView
+            android:id="@+id/listViewProduits"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="@null"
+            android:dividerHeight="8dp"
+            android:clipToPadding="false" />
+
+    </LinearLayout>
+
+</LinearLayout>
