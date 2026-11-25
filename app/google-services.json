@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "409809010603",
+    "project_id": "gestionproduit-6ac47",
+    "storage_bucket": "gestionproduit-6ac47.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:409809010603:android:e99ddee7395b5a772d9cee",
+        "android_client_info": {
+          "package_name": "com.example.gestionproduitssqlite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjTGtooJabp22jAoh4QZ4BrguYjWZwYnE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:409809010603:android:e99ddee7395b5a772d9cee",
+        "android_client_info": {
+          "package_name": "com.company.gestion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjTGtooJabp22jAoh4QZ4BrguYjWZwYnE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

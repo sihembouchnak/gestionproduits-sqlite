@@ -1,6 +1,9 @@
 package com.example.gestionproduitssqlite;
 
+import com.google.firebase.firestore.Exclude;
+
 public class Product {
+    private String documentId;
     private int id;
     private String name;
     private String description;
@@ -14,6 +17,22 @@ public class Product {
         this.name = name;
         this.description = description;
         this.price = price;
+    }
+
+    public Product(String documentId, String name, String description, double price) {
+        this.documentId = documentId;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+    }
+
+    @Exclude
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
     }
 
     public int getId() {

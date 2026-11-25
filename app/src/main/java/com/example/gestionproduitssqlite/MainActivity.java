@@ -2,6 +2,7 @@ package com.example.gestionproduitssqlite;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -13,7 +14,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,22 +33,31 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtHeaderCount;
     private ProductDatabaseHelper dbHelper;
     private ArrayAdapter<Product> adapter;
-    private List<Product> productList;
+    private List<Product> productList = new ArrayList<>();
+
+    // Instance de Firestore
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialisation des vues et de la base de données
+        // Initialisation de Firestore
+        db = FirebaseFirestore.getInstance();
+
+        // Initialisation des vues et de la base de données locale SQLite
         listViewProduits = findViewById(R.id.listViewProduits);
         btnAjouterProduit = findViewById(R.id.btnAjouterProduit);
         btnOuvrirConvertisseur = findViewById(R.id.btnOuvrirConvertisseur);
         txtHeaderCount = findViewById(R.id.txtHeaderCount);
         dbHelper = new ProductDatabaseHelper(this);
 
-        // Charger et afficher la liste des produits au démarrage
-        refreshProductList();
+        // Configuration de l'adaptateur ListView
+        setupAdapter();
+
+        // Charger et écouter les produits depuis Firestore en temps réel
+        getProductsFromFirestore();
 
         // 1. Accès direct sans menu à 3 points : Ajouter Produit
         btnAjouterProduit.setOnClickListener(v -> showProductDialog(null));
@@ -51,19 +70,14 @@ public class MainActivity extends AppCompatActivity {
 
         // 3. Clic sur un produit : Boîte de dialogue pour Modifier ou Supprimer
         listViewProduits.setOnItemClickListener((parent, view, position, id) -> {
-            Product selectedProduct = productList.get(position);
-            showOptionsDialog(selectedProduct);
+            if (position >= 0 && position < productList.size()) {
+                Product selectedProduct = productList.get(position);
+                showOptionsDialog(selectedProduct);
+            }
         });
     }
 
-    // Méthode pour rafraîchir l'affichage des cartes de produits dans la ListView
-    private void refreshProductList() {
-        productList = dbHelper.getAllProducts();
-
-        if (txtHeaderCount != null) {
-            txtHeaderCount.setText("Produits en stock (" + productList.size() + ")");
-        }
-
+    private void setupAdapter() {
         adapter = new ArrayAdapter<Product>(this, R.layout.item_product, productList) {
             @NonNull
             @Override
@@ -95,7 +109,190 @@ public class MainActivity extends AppCompatActivity {
         listViewProduits.setAdapter(adapter);
     }
 
-    // Formulaire d'ajout ou de modification d'un produit
+    // =========================================================================
+    // Étape 2: OPÉRATIONS CRUD FIRESTORE POUR LES PRODUITS
+    // =========================================================================
+
+    // 1. Créer un document dans Firestore (Create)
+    private void addProductToFirestore(String name, String description, double price) {
+        Map<String, Object> productMap = new HashMap<>();
+        productMap.put("name", name);
+        productMap.put("description", description);
+        productMap.put("price", price);
+
+        db.collection("products")
+                .add(productMap)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Document ajouté avec succès", Toast.LENGTH_SHORT).show();
+                    // Synchronisation locale SQLite
+                    Product newProduct = new Product(0, name, description, price);
+                    dbHelper.addProduct(newProduct);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Erreur d'ajout : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // 2. Lire des documents depuis Firestore (Read) en temps réel
+    private void getProductsFromFirestore() {
+        db.collection("products")
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        Log.e("Firestore", "Erreur de lecture", e);
+                        // Fallback sur SQLite en cas d'erreur / hors ligne
+                        loadFromSQLite();
+                        return;
+                    }
+
+                    if (queryDocumentSnapshots != null) {
+                        productList.clear();
+                        for (DocumentSnapshot document : queryDocumentSnapshots) {
+                            String docId = document.getId();
+                            String name = document.getString("name");
+                            String description = document.getString("description");
+                            Double priceDouble = document.getDouble("price");
+                            double price = (priceDouble != null) ? priceDouble : 0.0;
+
+                            Product product = new Product(docId, name != null ? name : "", description, price);
+                            productList.add(product);
+                        }
+
+                        if (txtHeaderCount != null) {
+                            txtHeaderCount.setText("Produits en stock (" + productList.size() + ")");
+                        }
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+    }
+
+    // Fallback SQLite si besoin
+    private void loadFromSQLite() {
+        productList.clear();
+        productList.addAll(dbHelper.getAllProducts());
+        if (txtHeaderCount != null) {
+            txtHeaderCount.setText("Produits en stock (" + productList.size() + ")");
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    // 3. Mettre à jour un document dans Firestore (Update)
+    private void updateProductInFirestore(Product product, String newName, String newDesc, double newPrice) {
+        if (product.getDocumentId() != null) {
+            DocumentReference personRef = db.collection("products").document(product.getDocumentId());
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("name", newName);
+            updates.put("description", newDesc);
+            updates.put("price", newPrice);
+
+            personRef.update(updates)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Document mis à jour avec succès", Toast.LENGTH_SHORT).show();
+                        if (product.getId() > 0) {
+                            product.setName(newName);
+                            product.setDescription(newDesc);
+                            product.setPrice(newPrice);
+                            dbHelper.updateProduct(product);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Erreur de mise à jour : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            // Si le produit n'a pas de documentId Firestore (issu de SQLite uniquement)
+            product.setName(newName);
+            product.setDescription(newDesc);
+            product.setPrice(newPrice);
+            dbHelper.updateProduct(product);
+            loadFromSQLite();
+            Toast.makeText(this, "Produit mis à jour dans SQLite", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // 4. Supprimer un document dans Firestore (Delete)
+    private void deleteProductFromFirestore(Product product) {
+        if (product.getDocumentId() != null) {
+            DocumentReference personRef = db.collection("products").document(product.getDocumentId());
+            personRef.delete()
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Document supprimé avec succès", Toast.LENGTH_SHORT).show();
+                        if (product.getId() > 0) {
+                            dbHelper.deleteProduct(product.getId());
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Erreur de suppression : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            // Si issu de SQLite uniquement
+            dbHelper.deleteProduct(product.getId());
+            loadFromSQLite();
+            Toast.makeText(this, "Document supprimé de SQLite", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // =========================================================================
+    // Exemples d'implémentation modèle fournis dans la notice (Person / People)
+    // =========================================================================
+
+    private void addPerson() {
+        Map<String, Object> person = new HashMap<>();
+        person.put("firstName", "John");
+        person.put("lastName", "Doe");
+        person.put("age", 30);
+
+        db.collection("people")
+                .add(person)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Document ajouté avec succès", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Erreur d'ajout : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void getPeople() {
+        db.collection("people")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        String firstName = document.getString("firstName");
+                        String lastName = document.getString("lastName");
+                        Long ageLong = document.getLong("age");
+                        int age = (ageLong != null) ? ageLong.intValue() : 0;
+                        Log.d("Firestore", "Nom: " + firstName + " " + lastName + ", Âge: " + age);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Erreur de lecture", e);
+                });
+    }
+
+    private void updatePerson(String documentId) {
+        DocumentReference personRef = db.collection("people").document(documentId);
+        personRef.update("age", 31)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Document mis à jour avec succès", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Erreur de mise à jour : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void deletePerson(String documentId) {
+        DocumentReference personRef = db.collection("people").document(documentId);
+        personRef.delete()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Document supprimé avec succès", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Erreur de suppression : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // =========================================================================
+    // DIALOGUES D'INTERACTION UTILISATEUR
+    // =========================================================================
+
     private void showProductDialog(Product productToEdit) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_product, null);
@@ -125,17 +322,10 @@ public class MainActivity extends AppCompatActivity {
                     double price = Double.parseDouble(priceStr.replace(',', '.'));
 
                     if (isEdit) {
-                        productToEdit.setName(name);
-                        productToEdit.setDescription(description);
-                        productToEdit.setPrice(price);
-                        dbHelper.updateProduct(productToEdit);
-                        Toast.makeText(this, "Produit mis à jour avec succès", Toast.LENGTH_SHORT).show();
+                        updateProductInFirestore(productToEdit, name, description, price);
                     } else {
-                        Product newProduct = new Product(0, name, description, price);
-                        dbHelper.addProduct(newProduct);
-                        Toast.makeText(this, "Produit ajouté avec succès", Toast.LENGTH_SHORT).show();
+                        addProductToFirestore(name, description, price);
                     }
-                    refreshProductList();
                 } catch (NumberFormatException e) {
                     Toast.makeText(this, "Prix invalide, veuillez saisir un nombre valide", Toast.LENGTH_SHORT).show();
                 }
@@ -148,7 +338,6 @@ public class MainActivity extends AppCompatActivity {
         builder.create().show();
     }
 
-    // Boîte de dialogue au clic sur un produit : propose "Modifier" ou "Supprimer"
     private void showOptionsDialog(Product product) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(product.getName());
@@ -161,9 +350,7 @@ public class MainActivity extends AppCompatActivity {
                     .setTitle("Confirmation de suppression")
                     .setMessage("Êtes-vous sûr de vouloir supprimer \"" + product.getName() + "\" ?")
                     .setPositiveButton("Oui, Supprimer", (confirmDialog, confirmWhich) -> {
-                        dbHelper.deleteProduct(product.getId());
-                        refreshProductList();
-                        Toast.makeText(this, "Produit supprimé", Toast.LENGTH_SHORT).show();
+                        deleteProductFromFirestore(product);
                     })
                     .setNegativeButton("Non", null)
                     .show();
